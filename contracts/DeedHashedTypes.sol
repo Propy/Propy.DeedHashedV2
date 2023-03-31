@@ -14,4 +14,10 @@ contract DeedHashedTypes {
       Complete
     }
 
+    struct Token {
+      TokenStatus status;
+      uint256 tokenId;
+      string tokenURI;
+    }
+
 }
