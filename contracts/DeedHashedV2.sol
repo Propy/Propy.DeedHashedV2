@@ -35,10 +35,11 @@ contract DeedHashedV2 is ERC721, AccessControl {
 
   // TODO: Test gas consumption comparison between current method and using `using Roles for Roles.Role;`
 
-  modifier onlyRoleAdmin() {
-    require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "NOT_ROLE_ADMIN");
-    _;
-  }
+  // Not needed yet
+  // modifier onlyRoleAdmin() {
+  //   require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "NOT_ROLE_ADMIN");
+  //   _;
+  // }
 
   modifier onlyMinter() {
     require(hasRole(MINTER_ROLE, msg.sender), "NOT_MINTER");
@@ -110,6 +111,13 @@ contract DeedHashedV2 is ERC721, AccessControl {
     tokens[_tokenId].tokenURI = _tokenURI;
     emit TokenStatusUpdated(_tokenId, _status, _tokenURI);
     emit TokenURIUpdated(_tokenId, _status, _tokenURI);
+  }
+
+  function tokenInfo(
+    uint256 _tokenId
+  ) public view returns (DeedHashedTypes.Token memory) {
+    require(_exists(_tokenId), "INVALID_TOKEN_ID");
+    return tokens[_tokenId];
   }
 
   function tokenURI(uint256 _tokenId) public view virtual override returns (string memory) {
