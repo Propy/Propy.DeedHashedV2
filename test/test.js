@@ -24,7 +24,7 @@ describe("DeedHashedCloneFactory", function () {
   let mockUpdateHash = "0x1c34a3b27b8443eecb1d801754255cdae4c1378c46c3190120b94dfc4f26caa2";
   let mockUpdateMetaHash = "0xf7e753b1f4e3d1f16607fa273f1852ef182d129f17036987f41ab6311e1ec4be";
   let mockGetTypeResponse = "0x6c9d3246a82cebf50568960c7807f587f292ee84c530e338c23fad4116a14a13";
-  let TokenStatus = {
+  let TokenState = {
     InitialSetup: 0,
     InitialDocuments: 1,
     TitleAndEscrow: 2,
@@ -34,7 +34,7 @@ describe("DeedHashedCloneFactory", function () {
     DeedAndFinalDocuments: 6,
     Complete: 7,
   }
-  let InvalidTokenStatus = 8;
+  let InvalidTokenState = 8;
   beforeEach(async function () {
     [
       adminSigner,
@@ -144,32 +144,32 @@ describe("DeedHashedCloneFactory", function () {
         ).to.equal(tokenReceiver.address);
       });
     });
-    context("function updateTokenStatus", async function () {
+    context("function updateTokenState", async function () {
       it("Should not be callable from a non-tokenURIUpdater address", async function () {
         await deedHashedV2.connect(minterSigner).mint(tokenReceiver.address, "ipfs://QmdiULknC3Zh2FMWw1DjFGnEBBLFp2qQbbyChjwuUkZVJx");
         await expect(
-          deedHashedV2.connect(minterSigner).updateTokenStatus(1, TokenStatus.InitialDocuments)
+          deedHashedV2.connect(minterSigner).updateTokenState(1, TokenState.InitialDocuments)
         ).to.be.revertedWith("NOT_STATUS_UPDATER")
       });
       it("Should not allow an invalid tokenStatus", async function () {
         await deedHashedV2.connect(minterSigner).mint(tokenReceiver.address, "ipfs://QmdiULknC3Zh2FMWw1DjFGnEBBLFp2qQbbyChjwuUkZVJx");
         await expect(
-          deedHashedV2.connect(statusUpdaterSigner).updateTokenStatus(1, InvalidTokenStatus)
+          deedHashedV2.connect(statusUpdaterSigner).updateTokenState(1, InvalidTokenState)
         ).to.be.reverted
       });
       it("Should not allow an invalid token ID", async function () {
         await deedHashedV2.connect(minterSigner).mint(tokenReceiver.address, "ipfs://QmdiULknC3Zh2FMWw1DjFGnEBBLFp2qQbbyChjwuUkZVJx");
         await expect(
-          deedHashedV2.connect(statusUpdaterSigner).updateTokenStatus(2, TokenStatus.InitialDocuments)
+          deedHashedV2.connect(statusUpdaterSigner).updateTokenState(2, TokenState.InitialDocuments)
         ).to.be.revertedWith("INVALID_TOKEN_ID")
       });
       it("Should allow tokenURIUpdaterSigner to update tokenStatus", async function () {
         await deedHashedV2.connect(minterSigner).mint(tokenReceiver.address, "ipfs://QmdiULknC3Zh2FMWw1DjFGnEBBLFp2qQbbyChjwuUkZVJx");
         let currentTokenInfo = await deedHashedV2.tokenInfo(1);
-        expect(currentTokenInfo.status).to.equal(TokenStatus.InitialSetup);
-        await deedHashedV2.connect(statusUpdaterSigner).updateTokenStatus(1, TokenStatus.InitialDocuments);
+        expect(currentTokenInfo.state).to.equal(TokenState.InitialSetup);
+        await deedHashedV2.connect(statusUpdaterSigner).updateTokenState(1, TokenState.InitialDocuments);
         let postUpdateTokenInfo = await deedHashedV2.tokenInfo(1);
-        expect(postUpdateTokenInfo.status).to.equal(TokenStatus.InitialDocuments);
+        expect(postUpdateTokenInfo.state).to.equal(TokenState.InitialDocuments);
       });
     });
     context("function updateTokenURI", async function () {
@@ -200,43 +200,43 @@ describe("DeedHashedCloneFactory", function () {
         expect(postUpdateTokenInfo.tokenURI).to.equal("ipfs://test");
       });
     });
-    context("function updateTokenStatusAndURI", async function () {
+    context("function updateTokenStateAndURI", async function () {
       it("Should not be callable from a non-statusAndTokenURIUpdater address", async function () {
         await deedHashedV2.connect(minterSigner).mint(tokenReceiver.address, "ipfs://QmdiULknC3Zh2FMWw1DjFGnEBBLFp2qQbbyChjwuUkZVJx");
         await expect(
-          deedHashedV2.connect(tokenURIUpdaterSigner).updateTokenStatusAndURI(1, TokenStatus.InitialDocuments, "ipfs://test")
+          deedHashedV2.connect(tokenURIUpdaterSigner).updateTokenStateAndURI(1, TokenState.InitialDocuments, "ipfs://test")
         ).to.be.revertedWith("NOT_STATUS_UPDATER")
         await expect(
-          deedHashedV2.connect(statusUpdaterSigner).updateTokenStatusAndURI(1, TokenStatus.InitialDocuments, "ipfs://test")
+          deedHashedV2.connect(statusUpdaterSigner).updateTokenStateAndURI(1, TokenState.InitialDocuments, "ipfs://test")
         ).to.be.revertedWith("NOT_TOKEN_URI_UPDATER")
       });
       it("Should not allow an empty tokenURI", async function () {
         await deedHashedV2.connect(minterSigner).mint(tokenReceiver.address, "ipfs://QmdiULknC3Zh2FMWw1DjFGnEBBLFp2qQbbyChjwuUkZVJx");
         await expect(
-          deedHashedV2.connect(statusAndTokenURIUpdaterSigner).updateTokenStatusAndURI(1, TokenStatus.InitialDocuments, "")
+          deedHashedV2.connect(statusAndTokenURIUpdaterSigner).updateTokenStateAndURI(1, TokenState.InitialDocuments, "")
         ).to.be.revertedWith("EMPTY_TOKEN_URI")
       });
       it("Should not allow an invalid tokenStatus", async function () {
         await deedHashedV2.connect(minterSigner).mint(tokenReceiver.address, "ipfs://QmdiULknC3Zh2FMWw1DjFGnEBBLFp2qQbbyChjwuUkZVJx");
         await expect(
-          deedHashedV2.connect(statusAndTokenURIUpdaterSigner).updateTokenStatusAndURI(1, InvalidTokenStatus, "")
+          deedHashedV2.connect(statusAndTokenURIUpdaterSigner).updateTokenStateAndURI(1, InvalidTokenState, "")
         ).to.be.reverted
       });
       it("Should not allow an invalid token ID", async function () {
         await deedHashedV2.connect(minterSigner).mint(tokenReceiver.address, "ipfs://QmdiULknC3Zh2FMWw1DjFGnEBBLFp2qQbbyChjwuUkZVJx");
         await expect(
-          deedHashedV2.connect(statusAndTokenURIUpdaterSigner).updateTokenStatusAndURI(2, TokenStatus.InitialDocuments, "ipfs://test")
+          deedHashedV2.connect(statusAndTokenURIUpdaterSigner).updateTokenStateAndURI(2, TokenState.InitialDocuments, "ipfs://test")
         ).to.be.revertedWith("INVALID_TOKEN_ID")
       });
       it("Should allow statusAndTokenURIUpdaterSigner to update tokenURI & tokenStatus", async function () {
         await deedHashedV2.connect(minterSigner).mint(tokenReceiver.address, "ipfs://QmdiULknC3Zh2FMWw1DjFGnEBBLFp2qQbbyChjwuUkZVJx");
         let currentTokenInfo = await deedHashedV2.tokenInfo(1);
         expect(currentTokenInfo.tokenURI).to.equal("ipfs://QmdiULknC3Zh2FMWw1DjFGnEBBLFp2qQbbyChjwuUkZVJx");
-        expect(currentTokenInfo.status).to.equal(TokenStatus.InitialSetup);
-        await deedHashedV2.connect(statusAndTokenURIUpdaterSigner).updateTokenStatusAndURI(1, TokenStatus.InitialDocuments, "ipfs://test")
+        expect(currentTokenInfo.state).to.equal(TokenState.InitialSetup);
+        await deedHashedV2.connect(statusAndTokenURIUpdaterSigner).updateTokenStateAndURI(1, TokenState.InitialDocuments, "ipfs://test")
         let postUpdateTokenInfo = await deedHashedV2.tokenInfo(1);
         expect(postUpdateTokenInfo.tokenURI).to.equal("ipfs://test");
-        expect(postUpdateTokenInfo.status).to.equal(TokenStatus.InitialDocuments);
+        expect(postUpdateTokenInfo.state).to.equal(TokenState.InitialDocuments);
       });
     });
   });
@@ -252,7 +252,7 @@ describe("DeedHashedCloneFactory", function () {
         await deedHashedV2.connect(minterSigner).mint(tokenReceiver.address, "ipfs://QmdiULknC3Zh2FMWw1DjFGnEBBLFp2qQbbyChjwuUkZVJx");
         let tokenInfo = await deedHashedV2.tokenInfo(1);
         expect(tokenInfo.tokenURI).to.equal("ipfs://QmdiULknC3Zh2FMWw1DjFGnEBBLFp2qQbbyChjwuUkZVJx");
-        expect(tokenInfo.status).to.equal(TokenStatus.InitialSetup);
+        expect(tokenInfo.state).to.equal(TokenState.InitialSetup);
       });
     });
     context("function tokenURI", async function () {

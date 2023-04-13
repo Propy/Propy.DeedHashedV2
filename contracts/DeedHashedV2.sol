@@ -5,22 +5,28 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol"; 
 
-import "./DeedHashedTypes.sol";
+import "./DeedHashedStates.sol";
 
 contract DeedHashedV2 is ERC721, AccessControl {
 
   using Counters for Counters.Counter;
   Counters.Counter private _tokenIdCounter;
 
-  event TokenMinted(uint256 indexed tokenId, DeedHashedTypes.TokenStatus indexed tokenStatus, string indexed tokenURI);
-  event TokenStatusUpdated(uint256 indexed tokenId, DeedHashedTypes.TokenStatus indexed tokenStatus, string indexed tokenURI);
-  event TokenURIUpdated(uint256 indexed tokenId, DeedHashedTypes.TokenStatus indexed tokenStatus, string indexed tokenURI);
+  event TokenMinted(uint256 indexed tokenId, DeedHashedStates.TokenState indexed tokenStatus, string indexed tokenURI);
+  event TokenStateUpdated(uint256 indexed tokenId, DeedHashedStates.TokenState indexed tokenStatus, string indexed tokenURI);
+  event TokenURIUpdated(uint256 indexed tokenId, DeedHashedStates.TokenState indexed tokenStatus, string indexed tokenURI);
 
   bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE"); // can mint -> 0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6
-  bytes32 public constant STATUS_UPDATER_ROLE = keccak256("STATUS_UPDATER_ROLE"); // can manage status of tokens -> 0x623dce6eebcb1ce2d181d8e0b50fbdbf007b027df90c2c87036f6ee3ee840474
+  bytes32 public constant STATUS_UPDATER_ROLE = keccak256("STATUS_UPDATER_ROLE"); // can manage state of tokens -> 0x623dce6eebcb1ce2d181d8e0b50fbdbf007b027df90c2c87036f6ee3ee840474
   bytes32 public constant TOKEN_URI_UPDATER_ROLE = keccak256("TOKEN_URI_UPDATER_ROLE"); // can update tokenURI -> 0xd610886bde7b9b3561f4ecdece11096467246c56f3a9958246e8d8b56500f923
 
-  mapping (uint256 => DeedHashedTypes.Token) internal tokens;
+  struct Token {
+    DeedHashedStates.TokenState state;
+    uint256 tokenId;
+    string tokenURI;
+  }
+
+  mapping (uint256 => Token) internal tokens;
 
   constructor(
     address _roleAdmin,
@@ -73,21 +79,21 @@ contract DeedHashedV2 is ERC721, AccessControl {
     require(bytes(_tokenURI).length > 0, "EMPTY_TOKEN_URI");
     _tokenIdCounter.increment();
     _mint(_to, _tokenIdCounter.current());
-    tokens[_tokenIdCounter.current()] = DeedHashedTypes.Token(
-      DeedHashedTypes.TokenStatus.InitialSetup,
+    tokens[_tokenIdCounter.current()] = Token(
+      DeedHashedStates.TokenState.InitialSetup,
       _tokenIdCounter.current(),
       _tokenURI
     );
-    emit TokenMinted(_tokenIdCounter.current(), DeedHashedTypes.TokenStatus.InitialSetup, _tokenURI);
+    emit TokenMinted(_tokenIdCounter.current(), DeedHashedStates.TokenState.InitialSetup, _tokenURI);
   }
 
-  function updateTokenStatus(
+  function updateTokenState(
     uint256 _tokenId,
-    DeedHashedTypes.TokenStatus _status
+    DeedHashedStates.TokenState _status
   ) public onlyStatusUpdater {
     require(_exists(_tokenId), "INVALID_TOKEN_ID");
-    tokens[_tokenId].status = _status;
-    emit TokenStatusUpdated(_tokenId, _status, tokens[_tokenId].tokenURI);
+    tokens[_tokenId].state = _status;
+    emit TokenStateUpdated(_tokenId, _status, tokens[_tokenId].tokenURI);
   }
 
   function updateTokenURI(
@@ -97,25 +103,25 @@ contract DeedHashedV2 is ERC721, AccessControl {
     require(bytes(_tokenURI).length > 0, "EMPTY_TOKEN_URI");
     require(_exists(_tokenId), "INVALID_TOKEN_ID");
     tokens[_tokenId].tokenURI = _tokenURI;
-    emit TokenURIUpdated(_tokenId, tokens[_tokenId].status, _tokenURI);
+    emit TokenURIUpdated(_tokenId, tokens[_tokenId].state, _tokenURI);
   }
 
-  function updateTokenStatusAndURI(
+  function updateTokenStateAndURI(
     uint256 _tokenId,
-    DeedHashedTypes.TokenStatus _status,
+    DeedHashedStates.TokenState _status,
     string memory _tokenURI
   ) public onlyStatusAndTokenURIUpdater {
     require(bytes(_tokenURI).length > 0, "EMPTY_TOKEN_URI");
     require(_exists(_tokenId), "INVALID_TOKEN_ID");
-    tokens[_tokenId].status = _status;
+    tokens[_tokenId].state = _status;
     tokens[_tokenId].tokenURI = _tokenURI;
-    emit TokenStatusUpdated(_tokenId, _status, _tokenURI);
+    emit TokenStateUpdated(_tokenId, _status, _tokenURI);
     emit TokenURIUpdated(_tokenId, _status, _tokenURI);
   }
 
   function tokenInfo(
     uint256 _tokenId
-  ) public view returns (DeedHashedTypes.Token memory) {
+  ) public view returns (Token memory) {
     require(_exists(_tokenId), "INVALID_TOKEN_ID");
     return tokens[_tokenId];
   }

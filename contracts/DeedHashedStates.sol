@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
-contract DeedHashedTypes {
+contract DeedHashedStates {
 
-    enum TokenStatus {
+    enum TokenState {
       InitialSetup,
       InitialDocuments,
       TitleAndEscrow,
@@ -12,12 +12,6 @@ contract DeedHashedTypes {
       Payment,
       DeedAndFinalDocuments,
       Complete
-    }
-
-    struct Token {
-      TokenStatus status;
-      uint256 tokenId;
-      string tokenURI;
     }
 
 }
