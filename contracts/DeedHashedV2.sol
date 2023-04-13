@@ -12,12 +12,12 @@ contract DeedHashedV2 is ERC721, AccessControl {
   using Counters for Counters.Counter;
   Counters.Counter private _tokenIdCounter;
 
-  event TokenMinted(uint256 indexed tokenId, DeedHashedStates.TokenState indexed tokenStatus, string indexed tokenURI);
-  event TokenStateUpdated(uint256 indexed tokenId, DeedHashedStates.TokenState indexed tokenStatus, string indexed tokenURI);
-  event TokenURIUpdated(uint256 indexed tokenId, DeedHashedStates.TokenState indexed tokenStatus, string indexed tokenURI);
+  event TokenMinted(uint256 indexed tokenId, DeedHashedStates.TokenState indexed tokenState, string indexed tokenURI);
+  event TokenStateUpdated(uint256 indexed tokenId, DeedHashedStates.TokenState indexed tokenState, string indexed tokenURI);
+  event TokenURIUpdated(uint256 indexed tokenId, DeedHashedStates.TokenState indexed tokenState, string indexed tokenURI);
 
   bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE"); // can mint -> 0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6
-  bytes32 public constant STATUS_UPDATER_ROLE = keccak256("STATUS_UPDATER_ROLE"); // can manage state of tokens -> 0x623dce6eebcb1ce2d181d8e0b50fbdbf007b027df90c2c87036f6ee3ee840474
+  bytes32 public constant STATE_UPDATER_ROLE = keccak256("STATE_UPDATER_ROLE"); // can manage state of tokens -> 0x7f496d3b3a5b8d5d66b1301ac9407fb7ebb241c9fb60310446582db629b01709
   bytes32 public constant TOKEN_URI_UPDATER_ROLE = keccak256("TOKEN_URI_UPDATER_ROLE"); // can update tokenURI -> 0xd610886bde7b9b3561f4ecdece11096467246c56f3a9958246e8d8b56500f923
 
   struct Token {
@@ -35,7 +35,7 @@ contract DeedHashedV2 is ERC721, AccessControl {
   ) ERC721(_tokenName, _tokenSymbol) {
     _setupRole(DEFAULT_ADMIN_ROLE, _roleAdmin);
     _setupRole(MINTER_ROLE, _roleAdmin);
-    _setupRole(STATUS_UPDATER_ROLE, _roleAdmin);
+    _setupRole(STATE_UPDATER_ROLE, _roleAdmin);
     _setupRole(TOKEN_URI_UPDATER_ROLE, _roleAdmin);
   }
 
@@ -52,8 +52,8 @@ contract DeedHashedV2 is ERC721, AccessControl {
     _;
   }
 
-  modifier onlyStatusUpdater() {
-    require(hasRole(STATUS_UPDATER_ROLE, msg.sender), "NOT_STATUS_UPDATER");
+  modifier onlyStateUpdater() {
+    require(hasRole(STATE_UPDATER_ROLE, msg.sender), "NOT_STATUS_UPDATER");
     _;
   }
 
@@ -62,8 +62,8 @@ contract DeedHashedV2 is ERC721, AccessControl {
     _;
   }
 
-  modifier onlyStatusAndTokenURIUpdater() {
-    require(hasRole(STATUS_UPDATER_ROLE, msg.sender), "NOT_STATUS_UPDATER");
+  modifier onlyStateAndTokenURIUpdater() {
+    require(hasRole(STATE_UPDATER_ROLE, msg.sender), "NOT_STATUS_UPDATER");
     require(hasRole(TOKEN_URI_UPDATER_ROLE, msg.sender), "NOT_TOKEN_URI_UPDATER");
     _;
   }
@@ -89,11 +89,11 @@ contract DeedHashedV2 is ERC721, AccessControl {
 
   function updateTokenState(
     uint256 _tokenId,
-    DeedHashedStates.TokenState _status
-  ) public onlyStatusUpdater {
+    DeedHashedStates.TokenState _state
+  ) public onlyStateUpdater {
     require(_exists(_tokenId), "INVALID_TOKEN_ID");
-    tokens[_tokenId].state = _status;
-    emit TokenStateUpdated(_tokenId, _status, tokens[_tokenId].tokenURI);
+    tokens[_tokenId].state = _state;
+    emit TokenStateUpdated(_tokenId, _state, tokens[_tokenId].tokenURI);
   }
 
   function updateTokenURI(
@@ -108,15 +108,15 @@ contract DeedHashedV2 is ERC721, AccessControl {
 
   function updateTokenStateAndURI(
     uint256 _tokenId,
-    DeedHashedStates.TokenState _status,
+    DeedHashedStates.TokenState _state,
     string memory _tokenURI
-  ) public onlyStatusAndTokenURIUpdater {
+  ) public onlyStateAndTokenURIUpdater {
     require(bytes(_tokenURI).length > 0, "EMPTY_TOKEN_URI");
     require(_exists(_tokenId), "INVALID_TOKEN_ID");
-    tokens[_tokenId].state = _status;
+    tokens[_tokenId].state = _state;
     tokens[_tokenId].tokenURI = _tokenURI;
-    emit TokenStateUpdated(_tokenId, _status, _tokenURI);
-    emit TokenURIUpdated(_tokenId, _status, _tokenURI);
+    emit TokenStateUpdated(_tokenId, _state, _tokenURI);
+    emit TokenURIUpdated(_tokenId, _state, _tokenURI);
   }
 
   function tokenInfo(

@@ -11,7 +11,8 @@ contract DeedHashedStates {
       ClosingStatements,
       Payment,
       DeedAndFinalDocuments,
-      Complete
+      Complete,
+      Cancelled
     }
 
 }

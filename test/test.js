@@ -5,7 +5,7 @@ describe("DeedHashedCloneFactory", function () {
 
   let DEFAULT_ADMIN_ROLE = "0x00";
   let MINTER_ROLE = "0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6";
-  let STATUS_UPDATER_ROLE = "0x623dce6eebcb1ce2d181d8e0b50fbdbf007b027df90c2c87036f6ee3ee840474";
+  let STATE_UPDATER_ROLE = "0x7f496d3b3a5b8d5d66b1301ac9407fb7ebb241c9fb60310446582db629b01709";
   let TOKEN_URI_UPDATER_ROLE = "0xd610886bde7b9b3561f4ecdece11096467246c56f3a9958246e8d8b56500f923";
 
   let adminSigner,
@@ -33,8 +33,9 @@ describe("DeedHashedCloneFactory", function () {
     Payment: 5,
     DeedAndFinalDocuments: 6,
     Complete: 7,
+    Cancelled: 8
   }
-  let InvalidTokenState = 8;
+  let InvalidTokenState = 9;
   beforeEach(async function () {
     [
       adminSigner,
@@ -56,9 +57,9 @@ describe("DeedHashedCloneFactory", function () {
 
     // Grant roles
     await deedHashedV2.grantRole(MINTER_ROLE, minterSigner.address);
-    await deedHashedV2.grantRole(STATUS_UPDATER_ROLE, statusUpdaterSigner.address);
+    await deedHashedV2.grantRole(STATE_UPDATER_ROLE, statusUpdaterSigner.address);
     await deedHashedV2.grantRole(TOKEN_URI_UPDATER_ROLE, tokenURIUpdaterSigner.address);
-    await deedHashedV2.grantRole(STATUS_UPDATER_ROLE, statusAndTokenURIUpdaterSigner.address);
+    await deedHashedV2.grantRole(STATE_UPDATER_ROLE, statusAndTokenURIUpdaterSigner.address);
     await deedHashedV2.grantRole(TOKEN_URI_UPDATER_ROLE, statusAndTokenURIUpdaterSigner.address);
 
   });
@@ -69,7 +70,7 @@ describe("DeedHashedCloneFactory", function () {
           deedHashedV2.connect(miscSigner).grantRole(MINTER_ROLE, minterSigner.address)
         ).to.be.reverted;
         await expect(
-          deedHashedV2.connect(miscSigner).grantRole(STATUS_UPDATER_ROLE, statusUpdaterSigner.address)
+          deedHashedV2.connect(miscSigner).grantRole(STATE_UPDATER_ROLE, statusUpdaterSigner.address)
         ).to.be.reverted;
         await expect(
           deedHashedV2.connect(miscSigner).grantRole(TOKEN_URI_UPDATER_ROLE, tokenURIUpdaterSigner.address)
@@ -77,41 +78,41 @@ describe("DeedHashedCloneFactory", function () {
       });
       it("Should enable the adminSigner to properly grant and revoke roles", async function () {
         await deedHashedV2.revokeRole(MINTER_ROLE, minterSigner.address);
-        await deedHashedV2.revokeRole(STATUS_UPDATER_ROLE, statusUpdaterSigner.address);
+        await deedHashedV2.revokeRole(STATE_UPDATER_ROLE, statusUpdaterSigner.address);
         await deedHashedV2.revokeRole(TOKEN_URI_UPDATER_ROLE, tokenURIUpdaterSigner.address);
-        await deedHashedV2.revokeRole(STATUS_UPDATER_ROLE, statusAndTokenURIUpdaterSigner.address);
+        await deedHashedV2.revokeRole(STATE_UPDATER_ROLE, statusAndTokenURIUpdaterSigner.address);
         await deedHashedV2.revokeRole(TOKEN_URI_UPDATER_ROLE, statusAndTokenURIUpdaterSigner.address);
         expect(
           await deedHashedV2.hasRole(MINTER_ROLE, minterSigner.address)
         ).to.equal(false);
         expect(
-          await deedHashedV2.hasRole(STATUS_UPDATER_ROLE, statusUpdaterSigner.address)
+          await deedHashedV2.hasRole(STATE_UPDATER_ROLE, statusUpdaterSigner.address)
         ).to.equal(false);
         expect(
           await deedHashedV2.hasRole(TOKEN_URI_UPDATER_ROLE, tokenURIUpdaterSigner.address)
         ).to.equal(false);
         expect(
-          await deedHashedV2.hasRole(STATUS_UPDATER_ROLE, statusAndTokenURIUpdaterSigner.address)
+          await deedHashedV2.hasRole(STATE_UPDATER_ROLE, statusAndTokenURIUpdaterSigner.address)
         ).to.equal(false);
         expect(
           await deedHashedV2.hasRole(TOKEN_URI_UPDATER_ROLE, statusAndTokenURIUpdaterSigner.address)
         ).to.equal(false);
         await deedHashedV2.grantRole(MINTER_ROLE, minterSigner.address);
-        await deedHashedV2.grantRole(STATUS_UPDATER_ROLE, statusUpdaterSigner.address);
+        await deedHashedV2.grantRole(STATE_UPDATER_ROLE, statusUpdaterSigner.address);
         await deedHashedV2.grantRole(TOKEN_URI_UPDATER_ROLE, tokenURIUpdaterSigner.address);
-        await deedHashedV2.grantRole(STATUS_UPDATER_ROLE, statusAndTokenURIUpdaterSigner.address);
+        await deedHashedV2.grantRole(STATE_UPDATER_ROLE, statusAndTokenURIUpdaterSigner.address);
         await deedHashedV2.grantRole(TOKEN_URI_UPDATER_ROLE, statusAndTokenURIUpdaterSigner.address);
         expect(
           await deedHashedV2.hasRole(MINTER_ROLE, minterSigner.address)
         ).to.equal(true);
         expect(
-          await deedHashedV2.hasRole(STATUS_UPDATER_ROLE, statusUpdaterSigner.address)
+          await deedHashedV2.hasRole(STATE_UPDATER_ROLE, statusUpdaterSigner.address)
         ).to.equal(true);
         expect(
           await deedHashedV2.hasRole(TOKEN_URI_UPDATER_ROLE, tokenURIUpdaterSigner.address)
         ).to.equal(true);
         expect(
-          await deedHashedV2.hasRole(STATUS_UPDATER_ROLE, statusAndTokenURIUpdaterSigner.address)
+          await deedHashedV2.hasRole(STATE_UPDATER_ROLE, statusAndTokenURIUpdaterSigner.address)
         ).to.equal(true);
         expect(
           await deedHashedV2.hasRole(TOKEN_URI_UPDATER_ROLE, statusAndTokenURIUpdaterSigner.address)
