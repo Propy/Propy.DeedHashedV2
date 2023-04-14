@@ -79,3 +79,13 @@ Deployment can be run using `npx hardhat run scripts/deployment.js --network goe
 ## Versions
 
 This repo was produced using `node v16.14.2` & `npm v8.5.0`
+
+## Gas Cost Comparisons (L1 vs Arbitrum)
+
+### Avg USD Pricing (Ethereum L1 @ 29 gwei):
+
+![Avg USD Pricing (Ethereum L1 @ 29 gwei)](https://vagabond-public-storage.s3.eu-west-2.amazonaws.com/Screenshot+2023-04-14+at+14.46.49.png)
+
+### Avg USD Pricing (Arbitrum L2 @ 0.1 gwei):
+
+![Avg USD Pricing (Arbitrum L2 @ 0.1 gwei)](https://vagabond-public-storage.s3.eu-west-2.amazonaws.com/Screenshot+2023-04-14+at+14.47.02.png)
