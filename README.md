@@ -2,6 +2,8 @@
 
 This repo implements DeedHashedV2.sol contracts used by the Propy Transaction Platform, these contracts represent stateful NFTs which can replicate and transition between the states that transactions on the Propy Transaction Platform go through.
 
+The ABI for interacting with DeedHashedV2 can be found [here](https://github.com/Propy/Propy.DeedHashedV2/blob/main/abi/DeedHashedV2ABI.json).
+
 The functionality of this repo is dependent upon 2 core contracts:
 
 ## DeedHashedV2.sol
@@ -13,6 +15,27 @@ The functionality of this repo is dependent upon 2 core contracts:
 ## DeedHashedStates.sol
 
 - [DeedHashedStates.sol](https://github.com/Propy/Propy.DeedHashedV2/blob/main/contracts/DeedHashedStates.sol) is used to store the different states that a DeedHashedV2 token can transition between, this was only separated into a separate contract for the sake of making it easier to redeploy with additional/modified states in the future.
+
+## Overview/interface of DeedHashedV2
+
+Below we outline the interface of the contract to get an easy overview of the functionality included in it, the full interface can be found [here](https://github.com/Propy/Propy.DeedHashedV2/blob/main/contracts/interfaces/IDeedHashedV2.sol).
+
+```solidity
+interface IDeedHashedV2 is IERC721, IAccessControl {
+
+  event TokenMinted(uint256 indexed tokenId, DeedHashedStates.TokenState indexed tokenState, string indexed tokenURI);
+  event TokenStateUpdated(uint256 indexed tokenId, DeedHashedStates.TokenState indexed tokenState, string indexed tokenURI);
+  event TokenURIUpdated(uint256 indexed tokenId, DeedHashedStates.TokenState indexed tokenState, string indexed tokenURI);
+
+  function mint(address _to, string memory _tokenURI) external;
+  function updateTokenState(uint256 _tokenId, DeedHashedStates.TokenState _state) external;
+  function updateTokenURI(uint256 _tokenId, string memory _tokenURI) external;
+  function updateTokenStateAndURI(uint256 _tokenId, DeedHashedStates.TokenState _state, string memory _tokenURI) external;
+  function tokenInfo(uint256 _tokenId) external view returns (Token memory);
+  function tokenURI(uint256 _tokenId) external view returns (string memory);
+
+}
+```
 
 ## Role References
 
