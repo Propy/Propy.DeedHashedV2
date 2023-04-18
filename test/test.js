@@ -1,7 +1,7 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
-describe("DeedHashedCloneFactory", function () {
+describe("DeedHashedV2", function () {
 
   let DEFAULT_ADMIN_ROLE = "0x00";
   let MINTER_ROLE = "0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6";
@@ -140,6 +140,57 @@ describe("DeedHashedCloneFactory", function () {
           deedHashedV2.ownerOf(1)
         ).to.be.revertedWith("ERC721: invalid token ID");
         await deedHashedV2.connect(minterSigner).mint(tokenReceiver.address, "ipfs://QmdiULknC3Zh2FMWw1DjFGnEBBLFp2qQbbyChjwuUkZVJx")
+        expect(
+          await deedHashedV2.ownerOf(1)
+        ).to.equal(tokenReceiver.address);
+      });
+    });
+    context("function transferFrom", async function () {
+      it("Should not be possible to transfer", async function () {
+        await expect(
+          deedHashedV2.ownerOf(1)
+        ).to.be.revertedWith("ERC721: invalid token ID");
+        await deedHashedV2.connect(minterSigner).mint(tokenReceiver.address, "ipfs://QmdiULknC3Zh2FMWw1DjFGnEBBLFp2qQbbyChjwuUkZVJx")
+        expect(
+          await deedHashedV2.ownerOf(1)
+        ).to.equal(tokenReceiver.address);
+        await expect(
+          deedHashedV2.connect(tokenReceiver).transferFrom(tokenReceiver.address, minterSigner.address, 1)
+        ).to.be.revertedWith("SOULBOUND");
+        expect(
+          await deedHashedV2.ownerOf(1)
+        ).to.equal(tokenReceiver.address);
+      });
+    });
+    context("function safeTransferFrom(address,address,uint256)", async function () {
+      it("Should not be possible to transfer", async function () {
+        await expect(
+          deedHashedV2.ownerOf(1)
+        ).to.be.revertedWith("ERC721: invalid token ID");
+        await deedHashedV2.connect(minterSigner).mint(tokenReceiver.address, "ipfs://QmdiULknC3Zh2FMWw1DjFGnEBBLFp2qQbbyChjwuUkZVJx")
+        expect(
+          await deedHashedV2.ownerOf(1)
+        ).to.equal(tokenReceiver.address);
+        await expect(
+          deedHashedV2.connect(tokenReceiver)['safeTransferFrom(address,address,uint256)'](tokenReceiver.address, minterSigner.address, 1)
+        ).to.be.revertedWith("SOULBOUND");
+        expect(
+          await deedHashedV2.ownerOf(1)
+        ).to.equal(tokenReceiver.address);
+      });
+    });
+    context("function safeTransferFrom(address,address,uint256,bytes)", async function () {
+      it("Should not be possible to transfer", async function () {
+        await expect(
+          deedHashedV2.ownerOf(1)
+        ).to.be.revertedWith("ERC721: invalid token ID");
+        await deedHashedV2.connect(minterSigner).mint(tokenReceiver.address, "ipfs://QmdiULknC3Zh2FMWw1DjFGnEBBLFp2qQbbyChjwuUkZVJx")
+        expect(
+          await deedHashedV2.ownerOf(1)
+        ).to.equal(tokenReceiver.address);
+        await expect(
+          deedHashedV2.connect(tokenReceiver)['safeTransferFrom(address,address,uint256,bytes)'](tokenReceiver.address, minterSigner.address, 1, "0x00")
+        ).to.be.revertedWith("SOULBOUND");
         expect(
           await deedHashedV2.ownerOf(1)
         ).to.equal(tokenReceiver.address);

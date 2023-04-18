@@ -131,4 +131,31 @@ contract DeedHashedV2 is ERC721, AccessControl {
     return tokens[_tokenId].tokenURI;
   }
 
+  // SOULBOUND LOGIC
+
+  function transferFrom(
+    address from,
+    address to,
+    uint256 tokenId
+  ) public override {
+    revert("SOULBOUND");
+  }
+
+  function safeTransferFrom(
+    address from,
+    address to,
+    uint256 tokenId
+  ) public override {
+    revert("SOULBOUND");
+  }
+
+  function safeTransferFrom(
+    address from,
+    address to,
+    uint256 tokenId,
+    bytes memory data
+  ) public override {
+    revert("SOULBOUND");
+  }
+
 }
