@@ -17,6 +17,7 @@ contract DeedHashedV2 is ERC721, AccessControl {
   event TokenURIUpdated(uint256 indexed tokenId, DeedHashedStates.TokenState indexed tokenState, string indexed tokenURI);
 
   bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE"); // can mint -> 0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6
+  bytes32 public constant TRANSFERRER_ROLE = keccak256("TRANSFERRER_ROLE"); // can transfer tokens -> 0x9c0b3a9882e11a6bfb8283b46d1e79513afb8024ee864cd3a5b3a9050c42a7d7
   bytes32 public constant STATE_UPDATER_ROLE = keccak256("STATE_UPDATER_ROLE"); // can manage state of tokens -> 0x7f496d3b3a5b8d5d66b1301ac9407fb7ebb241c9fb60310446582db629b01709
   bytes32 public constant TOKEN_URI_UPDATER_ROLE = keccak256("TOKEN_URI_UPDATER_ROLE"); // can update tokenURI -> 0xd610886bde7b9b3561f4ecdece11096467246c56f3a9958246e8d8b56500f923
 
@@ -35,17 +36,17 @@ contract DeedHashedV2 is ERC721, AccessControl {
   ) ERC721(_tokenName, _tokenSymbol) {
     _setupRole(DEFAULT_ADMIN_ROLE, _roleAdmin);
     _setupRole(MINTER_ROLE, _roleAdmin);
+    _setupRole(TRANSFERRER_ROLE, _roleAdmin);
     _setupRole(STATE_UPDATER_ROLE, _roleAdmin);
     _setupRole(TOKEN_URI_UPDATER_ROLE, _roleAdmin);
   }
 
   // TODO: Test gas consumption comparison between current method and using `using Roles for Roles.Role;`
 
-  // Not needed yet
-  // modifier onlyRoleAdmin() {
-  //   require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "NOT_ROLE_ADMIN");
-  //   _;
-  // }
+  modifier onlyTransferrer() {
+    require(hasRole(TRANSFERRER_ROLE, msg.sender), "CONTACT_PROPY_FOR_TRANSFER");
+    _;
+  }
 
   modifier onlyMinter() {
     require(hasRole(MINTER_ROLE, msg.sender), "NOT_MINTER");
@@ -131,22 +132,22 @@ contract DeedHashedV2 is ERC721, AccessControl {
     return tokens[_tokenId].tokenURI;
   }
 
-  // SOULBOUND LOGIC
+  // SOULBOUND(ESQUE) LOGIC (CAN BE OVERRIDDEN BY PROPY ADMIN)
 
   function transferFrom(
     address from,
     address to,
     uint256 tokenId
-  ) public override {
-    revert("SOULBOUND");
+  ) public override onlyTransferrer {
+    _transfer(from, to, tokenId);
   }
 
   function safeTransferFrom(
     address from,
     address to,
     uint256 tokenId
-  ) public override {
-    revert("SOULBOUND");
+  ) public override onlyTransferrer {
+    safeTransferFrom(from, to, tokenId, "");
   }
 
   function safeTransferFrom(
@@ -154,8 +155,8 @@ contract DeedHashedV2 is ERC721, AccessControl {
     address to,
     uint256 tokenId,
     bytes memory data
-  ) public override {
-    revert("SOULBOUND");
+  ) public override onlyTransferrer {
+    _safeTransfer(from, to, tokenId, data);
   }
 
 }
