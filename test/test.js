@@ -8,6 +8,7 @@ describe("DeedHashedV2", function () {
   let STATE_UPDATER_ROLE = "0x7f496d3b3a5b8d5d66b1301ac9407fb7ebb241c9fb60310446582db629b01709";
   let TOKEN_URI_UPDATER_ROLE = "0xd610886bde7b9b3561f4ecdece11096467246c56f3a9958246e8d8b56500f923";
   let TRANSFERRER_ROLE = "0x9c0b3a9882e11a6bfb8283b46d1e79513afb8024ee864cd3a5b3a9050c42a7d7";
+  let METADATA_LOCKER_ROLE = "0x0af1a227e20c738dadfc76971d0d110fd4b320a2b47db610f169242cda7cbd7e";
 
   let adminSigner,
     minterSigner,
@@ -44,6 +45,7 @@ describe("DeedHashedV2", function () {
       minterSigner,
       transferrerSigner,
       statusUpdaterSigner,
+      metadataLockerSigner,
       tokenURIUpdaterSigner,
       statusAndTokenURIUpdaterSigner,
       miscSigner,
@@ -62,6 +64,7 @@ describe("DeedHashedV2", function () {
     await deedHashedV2.grantRole(MINTER_ROLE, minterSigner.address);
     await deedHashedV2.grantRole(TRANSFERRER_ROLE, transferrerSigner.address);
     await deedHashedV2.grantRole(STATE_UPDATER_ROLE, statusUpdaterSigner.address);
+    await deedHashedV2.grantRole(METADATA_LOCKER_ROLE, metadataLockerSigner.address);
     await deedHashedV2.grantRole(TOKEN_URI_UPDATER_ROLE, tokenURIUpdaterSigner.address);
     await deedHashedV2.grantRole(STATE_UPDATER_ROLE, statusAndTokenURIUpdaterSigner.address);
     await deedHashedV2.grantRole(TOKEN_URI_UPDATER_ROLE, statusAndTokenURIUpdaterSigner.address);
@@ -329,6 +332,126 @@ describe("DeedHashedV2", function () {
         let postUpdateTokenInfo = await deedHashedV2.tokenInfo(1);
         expect(postUpdateTokenInfo.tokenURI).to.equal("ipfs://test");
         expect(postUpdateTokenInfo.state).to.equal(TokenState.InitialDocuments);
+      });
+    });
+    context("function lockMetadata", async function () {
+      it("Should not be callable from a non-metadataLocker address", async function () {
+        await deedHashedV2.connect(minterSigner).mint(tokenReceiver.address, "ipfs://QmdiULknC3Zh2FMWw1DjFGnEBBLFp2qQbbyChjwuUkZVJx");
+        await expect(
+          deedHashedV2.connect(minterSigner).lockMetadata(1)
+        ).to.be.revertedWith("NOT_METADATA_LOCKER")
+      });
+      it("Should revert if the tokenId is invalid", async function () {
+        await deedHashedV2.connect(minterSigner).mint(tokenReceiver.address, "ipfs://QmdiULknC3Zh2FMWw1DjFGnEBBLFp2qQbbyChjwuUkZVJx");
+        await expect(
+          deedHashedV2.connect(metadataLockerSigner).lockMetadata(2)
+        ).to.be.revertedWith("INVALID_TOKEN_ID")
+      });
+      it("Should revert if metadata is already locked", async function () {
+        await deedHashedV2.connect(minterSigner).mint(tokenReceiver.address, "ipfs://QmdiULknC3Zh2FMWw1DjFGnEBBLFp2qQbbyChjwuUkZVJx");
+        let currentTokenInfo = await deedHashedV2.tokenInfo(1);
+        expect(currentTokenInfo.state).to.equal(TokenState.InitialSetup);
+        await deedHashedV2.connect(statusUpdaterSigner).updateTokenState(1, TokenState.Complete);
+        let postUpdateTokenInfo = await deedHashedV2.tokenInfo(1);
+        expect(postUpdateTokenInfo.state).to.equal(TokenState.Complete);
+        await deedHashedV2.connect(metadataLockerSigner).lockMetadata(1);
+        await expect(
+          deedHashedV2.connect(metadataLockerSigner).lockMetadata(1)
+        ).to.be.revertedWith("ALREADY_LOCKED");
+      });
+      it("Should allow metadataLockerSigner to lock metadata", async function () {
+        await deedHashedV2.connect(minterSigner).mint(tokenReceiver.address, "ipfs://QmdiULknC3Zh2FMWw1DjFGnEBBLFp2qQbbyChjwuUkZVJx");
+        let currentTokenInfo = await deedHashedV2.tokenInfo(1);
+        expect(currentTokenInfo.state).to.equal(TokenState.InitialSetup);
+        await deedHashedV2.connect(statusUpdaterSigner).updateTokenState(1, TokenState.Complete);
+        let postUpdateTokenInfo = await deedHashedV2.tokenInfo(1);
+        expect(postUpdateTokenInfo.state).to.equal(TokenState.Complete);
+        await deedHashedV2.connect(metadataLockerSigner).lockMetadata(1);
+        await expect(
+          deedHashedV2.connect(statusUpdaterSigner).updateTokenState(1, TokenState.Cancelled)
+        ).to.be.revertedWith("METADATA_LOCKED");
+        await expect(
+          deedHashedV2.connect(tokenURIUpdaterSigner).updateTokenURI(1, "ipfs://")
+        ).to.be.revertedWith("METADATA_LOCKED");
+        await expect(
+          deedHashedV2.connect(statusAndTokenURIUpdaterSigner).updateTokenStateAndURI(1, TokenState.Cancelled, "test")
+        ).to.be.revertedWith("METADATA_LOCKED");
+      });
+    });
+    context("function unlockMetadata", async function () {
+      it("Should revert if the metadata is already unlocked", async function () {
+        await deedHashedV2.connect(minterSigner).mint(tokenReceiver.address, "ipfs://QmdiULknC3Zh2FMWw1DjFGnEBBLFp2qQbbyChjwuUkZVJx");
+        let currentTokenInfo = await deedHashedV2.tokenInfo(1);
+        expect(currentTokenInfo.state).to.equal(TokenState.InitialSetup);
+        await deedHashedV2.connect(statusUpdaterSigner).updateTokenState(1, TokenState.Complete);
+        let postUpdateTokenInfo = await deedHashedV2.tokenInfo(1);
+        expect(postUpdateTokenInfo.state).to.equal(TokenState.Complete);
+        await deedHashedV2.connect(metadataLockerSigner).lockMetadata(1);
+        await expect(
+          deedHashedV2.connect(statusUpdaterSigner).updateTokenState(1, TokenState.Cancelled)
+        ).to.be.revertedWith("METADATA_LOCKED");
+        await expect(
+          deedHashedV2.connect(tokenURIUpdaterSigner).updateTokenURI(1, "ipfs://")
+        ).to.be.revertedWith("METADATA_LOCKED");
+        await expect(
+          deedHashedV2.connect(statusAndTokenURIUpdaterSigner).updateTokenStateAndURI(1, TokenState.Cancelled, "test")
+        ).to.be.revertedWith("METADATA_LOCKED");
+        await deedHashedV2.connect(tokenReceiver).unlockMetadata(1);
+        await deedHashedV2.connect(statusUpdaterSigner).updateTokenState(1, TokenState.Cancelled);
+        let postUnlockUpdateTokenInfo = await deedHashedV2.tokenInfo(1);
+        expect(postUnlockUpdateTokenInfo.state).to.equal(TokenState.Cancelled);
+        await expect(
+          deedHashedV2.connect(tokenReceiver).unlockMetadata(1)
+        ).to.be.revertedWith("ALREADY_UNLOCKED")
+      });
+      it("Should not be callable from a non-token-owner address", async function () {
+        await deedHashedV2.connect(minterSigner).mint(tokenReceiver.address, "ipfs://QmdiULknC3Zh2FMWw1DjFGnEBBLFp2qQbbyChjwuUkZVJx");
+        let currentTokenInfo = await deedHashedV2.tokenInfo(1);
+        expect(currentTokenInfo.state).to.equal(TokenState.InitialSetup);
+        await deedHashedV2.connect(statusUpdaterSigner).updateTokenState(1, TokenState.Complete);
+        let postUpdateTokenInfo = await deedHashedV2.tokenInfo(1);
+        expect(postUpdateTokenInfo.state).to.equal(TokenState.Complete);
+        await deedHashedV2.connect(metadataLockerSigner).lockMetadata(1);
+        await expect(
+          deedHashedV2.connect(statusUpdaterSigner).updateTokenState(1, TokenState.Cancelled)
+        ).to.be.revertedWith("METADATA_LOCKED");
+        await expect(
+          deedHashedV2.connect(tokenURIUpdaterSigner).updateTokenURI(1, "ipfs://")
+        ).to.be.revertedWith("METADATA_LOCKED");
+        await expect(
+          deedHashedV2.connect(statusAndTokenURIUpdaterSigner).updateTokenStateAndURI(1, TokenState.Payment, "test")
+        ).to.be.revertedWith("METADATA_LOCKED");
+        await expect(
+          deedHashedV2.connect(metadataLockerSigner).unlockMetadata(1)
+        ).to.be.revertedWith("NOT_TOKEN_OWNER")
+      });
+      it("Should allow token owner to unlock metadata", async function () {
+        await deedHashedV2.connect(minterSigner).mint(tokenReceiver.address, "ipfs://QmdiULknC3Zh2FMWw1DjFGnEBBLFp2qQbbyChjwuUkZVJx");
+        let currentTokenInfo = await deedHashedV2.tokenInfo(1);
+        expect(currentTokenInfo.state).to.equal(TokenState.InitialSetup);
+        await deedHashedV2.connect(statusUpdaterSigner).updateTokenState(1, TokenState.Complete);
+        let postUpdateTokenInfo = await deedHashedV2.tokenInfo(1);
+        expect(postUpdateTokenInfo.state).to.equal(TokenState.Complete);
+        await deedHashedV2.connect(metadataLockerSigner).lockMetadata(1);
+        await expect(
+          deedHashedV2.connect(statusUpdaterSigner).updateTokenState(1, TokenState.Cancelled)
+        ).to.be.revertedWith("METADATA_LOCKED");
+        await expect(
+          deedHashedV2.connect(tokenURIUpdaterSigner).updateTokenURI(1, "ipfs://")
+        ).to.be.revertedWith("METADATA_LOCKED");
+        await expect(
+          deedHashedV2.connect(statusAndTokenURIUpdaterSigner).updateTokenStateAndURI(1, TokenState.Cancelled, "test")
+        ).to.be.revertedWith("METADATA_LOCKED");
+        await deedHashedV2.connect(tokenReceiver).unlockMetadata(1);
+        await deedHashedV2.connect(statusUpdaterSigner).updateTokenState(1, TokenState.Cancelled);
+        await deedHashedV2.connect(tokenURIUpdaterSigner).updateTokenURI(1, "ipfs://");
+        let postUnlockUpdateTokenInfoFirst = await deedHashedV2.tokenInfo(1);
+        expect(postUnlockUpdateTokenInfoFirst.state).to.equal(TokenState.Cancelled);
+        expect(postUnlockUpdateTokenInfoFirst.tokenURI).to.equal("ipfs://");
+        await deedHashedV2.connect(statusAndTokenURIUpdaterSigner).updateTokenStateAndURI(1, TokenState.Payment, "test")
+        let postUnlockUpdateTokenInfoSecond = await deedHashedV2.tokenInfo(1);
+        expect(postUnlockUpdateTokenInfoSecond.state).to.equal(TokenState.Payment);
+        expect(postUnlockUpdateTokenInfoSecond.tokenURI).to.equal("test");
       });
     });
   });
