@@ -2,6 +2,12 @@
 
 This repo implements DeedHashedV2.sol contracts used by the Propy Transaction Platform, these contracts represent stateful NFTs which can replicate and transition between the states that transactions on the Propy Transaction Platform go through.
 
+## Deployments
+
+Goerli: [`0x37f6091feF42eFD50d4F07a91c955606e8dE38c2`](https://goerli.etherscan.io/address/0x37f6091feF42eFD50d4F07a91c955606e8dE38c2) (admin address set to `0x657C0eCF07f6e2B2D01c13F328B230F07b824a57`)
+
+## ABI
+
 The ABI for interacting with DeedHashedV2 can be found [here](https://github.com/Propy/Propy.DeedHashedV2/blob/main/abi/DeedHashedV2ABI.json).
 
 The functionality of this repo is dependent upon 2 core contracts:
@@ -60,6 +66,18 @@ Result: `0x7f496d3b3a5b8d5d66b1301ac9407fb7ebb241c9fb60310446582db629b01709`
 Computation: `keccak256("TOKEN_URI_UPDATER_ROLE")`
 
 Result: `0xd610886bde7b9b3561f4ecdece11096467246c56f3a9958246e8d8b56500f923`
+
+### **TRANSFERRER_ROLE**:
+
+Computation: `keccak256("TRANSFERRER_ROLE")`
+
+Result: `0x9c0b3a9882e11a6bfb8283b46d1e79513afb8024ee864cd3a5b3a9050c42a7d7`
+
+### **METADATA_LOCKER_ROLE**:
+
+Computation: `keccak256("METADATA_LOCKER_ROLE")`
+
+Result: `0x0af1a227e20c738dadfc76971d0d110fd4b320a2b47db610f169242cda7cbd7e`
 
 ## Issuing a new DeedHashedV2 token
 

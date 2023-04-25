@@ -28,7 +28,8 @@ async function main() {
     // adminAddress = "";
   } else if (["goerli", "hardhat"].indexOf(hre.network.name) > -1) {
     // testnet config
-    adminAddress = deployerSigner.address;
+    // adminAddress = deployerSigner.address;
+    adminAddress = "0x657C0eCF07f6e2B2D01c13F328B230F07b824a57";
   }
 
   if(adminAddress) {
@@ -39,10 +40,10 @@ async function main() {
 
     console.log("DeedHashedV2 contract deployed to:", deedHashedV2.address);
 
-    let transferOwnershipTx = await deedHashedV2.transferOwnership(adminAddress);
-    await transferOwnershipTx.wait();
+    // let transferOwnershipTx = await deedHashedV2.transferOwnership(adminAddress);
+    // await transferOwnershipTx.wait();
 
-    console.log(`Transferred DeedHashedV2 ownership from ${deployerSigner.address} to ${adminAddress}`);
+    // console.log(`Transferred DeedHashedV2 ownership from ${deployerSigner.address} to ${adminAddress}`);
 
     // We run verification on Etherscan
     // If there is an official Etherscan instance of this network we are deploying to
@@ -57,8 +58,8 @@ async function main() {
 
       try {
         await hre.run('verify:verify', {
-          address: deedHashedClonable.address,
-          constructorArguments: []
+          address: deedHashedV2.address,
+          constructorArguments: [adminAddress, "PropyDeedHashedV2", "pDHV2"]
         });
       } catch (err) {
         console.log(`Verification error for reference contract: ${err}`);
