@@ -6,6 +6,8 @@ This repo implements DeedHashedV2.sol contracts used by the Propy Transaction Pl
 
 Goerli: [`0x37f6091feF42eFD50d4F07a91c955606e8dE38c2`](https://goerli.etherscan.io/address/0x37f6091feF42eFD50d4F07a91c955606e8dE38c2) (admin address set to `0x657C0eCF07f6e2B2D01c13F328B230F07b824a57`)
 
+Arbitrum: [`0x567c407D054A644DBBBf2d3a6643776473f82d7a`](https://arbiscan.io/address/0x567c407d054a644dbbbf2d3a6643776473f82d7a) (admin address set to `0x48608159077516afe77a04ebc0448ec32e6670c1`)
+
 ## ABI
 
 The ABI for interacting with DeedHashedV2 can be found [here](https://github.com/Propy/Propy.DeedHashedV2/blob/main/abi/DeedHashedV2ABI.json).
